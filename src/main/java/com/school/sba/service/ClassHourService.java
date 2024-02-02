@@ -16,4 +16,6 @@ public interface ClassHourService {
 
 	Object deleteClassHours(List<ClassHour> classHours);
 
+	ResponseEntity<ResponseStructure<List<ClassHour>>> craeteClassHoursForNextWeek(int programId);
+
 }

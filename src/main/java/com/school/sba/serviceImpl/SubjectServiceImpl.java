@@ -93,7 +93,7 @@ public class SubjectServiceImpl implements SubjectService {
 		} else {
 			throw new UnauthorizedException(null, null, null);
 		}
-		return null;
+		return new ResponseEntity<ResponseStructure<User>> (userStructure,HttpStatus.CREATED);
 	}
 
 }

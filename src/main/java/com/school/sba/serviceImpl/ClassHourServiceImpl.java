@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.ClassHour;
 import com.school.sba.entity.Schedule;
 import com.school.sba.entity.School;
@@ -17,7 +18,10 @@ import com.school.sba.entity.Subject;
 import com.school.sba.entity.User;
 import com.school.sba.enums.ClassStatus;
 import com.school.sba.enums.UserRole;
+import com.school.sba.exception.AcademinProgrammeException;
+import com.school.sba.exception.ClassHoursNotFoundException;
 import com.school.sba.exception.ConstraintViolationException;
+import com.school.sba.exception.SchoolNotFoundException;
 import com.school.sba.exception.UserNotFoundException;
 import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.ClassHourRepo;
@@ -31,17 +35,20 @@ import com.school.sba.util.ResponseStructure;
 public class ClassHourServiceImpl implements ClassHourService {
 
 	@Autowired
-	private AcademicProgramRepo academicProgramRepository;
+	AcademicProgramRepo academicProgramRepository;
 
 	@Autowired
-	private ClassHourRepo classHourRepo;
+	ClassHourRepo classHourRepo;
 
 	@Autowired
-	private SubjectRepo subjectRepo;
+	SubjectRepo subjectRepo;
 
 	@Autowired
-	private UserRepo userRepo;
+	UserRepo userRepo;
 
+	@Autowired
+	ResponseStructure<List<ClassHour>> hourStructure;
+	
 	@Autowired
 	ResponseStructure<String> structure;
 
@@ -123,11 +130,11 @@ public class ClassHourServiceImpl implements ClassHourService {
                 structure.setStatus(HttpStatus.CREATED.value());
                 return new ResponseEntity<>(structure, HttpStatus.CREATED);
             } else {
-                throw new UserNotFoundException(
+                throw new SchoolNotFoundException(
                         "The school does not contain any schedule, please provide a schedule to the school", null,
                         null);
             }
-        }).orElseThrow(() -> new UserNotFoundException("Invalid Program Id", HttpStatus.BAD_REQUEST, ""));
+        }).orElseThrow(() -> new AcademinProgrammeException("Invalid Program Id", HttpStatus.BAD_REQUEST, ""));
     }
 
 
@@ -159,17 +166,56 @@ public class ClassHourServiceImpl implements ClassHourService {
 					throw new ConstraintViolationException("Invalid User Id", HttpStatus.BAD_REQUEST, "");
 				}
 			} else {
-				throw new UserNotFoundException("Class Hour already contains Room No", HttpStatus.BAD_REQUEST, "");
+				throw new ClassHoursNotFoundException("Class Hour already contains Room No", HttpStatus.BAD_REQUEST, "");
 			}
 		});
 		return "ClassHour updated";
 	}
 
+	
+	@Override
+	public ResponseEntity<ResponseStructure<List<ClassHour>>> craeteClassHoursForNextWeek(int programId) {
+		AcademicProgram academicProgram = academicProgramRepository.findById(programId).get();
+		List<ClassHour> classHours = academicProgram.getClassHours();
+		classHours.forEach((cl) -> {
+			// createNewClassHour(ClassHour classHour) is down side we created
+			ClassHour createNewClassHour = createNewClassHour(cl);
+			classHours.add(createNewClassHour);
+		});
+
+		classHours.forEach((hour) -> {
+			LocalDateTime plusDays = hour.getBeginsAt().plusDays(7);
+			hour.setBeginsAt(plusDays);
+			classHourRepo.save(hour);
+		});
+		hourStructure.setMessage("New Class Hour Created For Next Week");
+		hourStructure.setStatus(HttpStatus.CREATED.value());
+		structure.setData("Class Hour Generated");
+		return new ResponseEntity<ResponseStructure<List<ClassHour>>>(hourStructure, HttpStatus.CREATED);	
+	}
+
+	private ClassHour createNewClassHour(ClassHour cl) {
+		ClassHour classHour2 = new ClassHour();
+
+		classHour2.setAcademicProgram(cl.getAcademicProgram());
+		classHour2.setBeginsAt(cl.getBeginsAt());
+		classHour2.setClassStatus(cl.getClassStatus());
+		classHour2.setEndsAt(cl.getEndsAt());
+		classHour2.setRoomNo(cl.getRoomNo());
+		classHour2.setSubjects(cl.getSubjects());
+		classHour2.setUser(cl.getUser());
+
+		return classHour2;
+	}
+
 	@Override
 	public Object deleteClassHours(List<ClassHour> classHours) {
-
-
-		return "Program Soft Deleted";
+		// TODO Auto-generated method stub
+		return "soft Delete";
 	}
+	
+	
+
+
 
 }

@@ -46,4 +46,11 @@ public class AcademicProgram {
 	@OneToMany(mappedBy = "academicProgram")
 	private List<ClassHour> classHours;
 
+	public boolean isAutoRepeat() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
 }

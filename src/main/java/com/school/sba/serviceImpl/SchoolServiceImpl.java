@@ -12,7 +12,7 @@ import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.School;
 import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
-import com.school.sba.exception.ConstraintViolationException;
+import com.school.sba.exception.SchoolNotFoundException;
 import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UserNotFoundException;
 import com.school.sba.repository.AcademicProgramRepo;
@@ -28,16 +28,16 @@ import com.school.sba.util.ResponseStructure;
 public class SchoolServiceImpl implements SchoolService {
 
 	@Autowired
-	private SchoolRepo schoolRepo;
+	SchoolRepo schoolRepo;
 
 	@Autowired
-	private UserRepo userRepo;
+	UserRepo userRepo;
 	
 	@Autowired
-	private AcademicProgramRepo programRepo;
+	AcademicProgramRepo programRepo;
 	
 	@Autowired
-	private ClassHourRepo classHourRepo;
+	ClassHourRepo classHourRepo;
 
 	@Autowired
 	ResponseStructure<SchoolResponse> responseStructure;
@@ -68,7 +68,7 @@ public class SchoolServiceImpl implements SchoolService {
 				responseStructure.setData(mapToSchoolResponse(school));
 				responseStructure.setMessage("School data has been registered successfully");
 			} else {
-				throw new ConstraintViolationException("1 School is already present ", HttpStatus.FORBIDDEN,
+				throw new SchoolNotFoundException("1 School is already present ", HttpStatus.FORBIDDEN,
 						"More than one school cannot be created");
 			}
 		} else {

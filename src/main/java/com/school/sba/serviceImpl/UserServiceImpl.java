@@ -22,13 +22,13 @@ import com.school.sba.service.UserService;
 public class UserServiceImpl implements UserService {
 
 	@Autowired
-	PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private UserRepo userRepo;
+	UserRepo userRepo;
 	
 	@Autowired
-	private ClassHourRepo classHourRepo;
+	ClassHourRepo classHourRepo;
+	
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	public User mapToUser(UserRequest userRequest) {
 		return User.builder().username(userRequest.getUsername())
